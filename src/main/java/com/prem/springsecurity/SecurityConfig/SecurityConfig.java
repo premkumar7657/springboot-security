@@ -74,6 +74,8 @@ public class SecurityConfig {
 
            // return new InMemoryUserDetailsManager(user1,user2);
            //https://github.com/spring-projects/spring-security/blob/main/core/src/main/resources/org/springframework/security/core/userdetails/jdbc/users.ddl
+           //https://github.com/jwtk/jjwt/blob/master/README.adoc#maven
+
     }
 
     @Bean
