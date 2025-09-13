@@ -1,10 +1,10 @@
 package com.prem.springsecurity.SecurityConfig;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,8 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.prem.springsecurity.JWTSecurity.AuthEntryPointJwt;
 import com.prem.springsecurity.JWTSecurity.AuthTokenFilter;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 import javax.sql.DataSource;
 
@@ -59,7 +57,7 @@ public class SecurityConfig {
           http.exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler));
 
 
-         // http.csrf(csrf -> csrf.disable());
+          http.csrf(csrf -> csrf.disable());
           http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin())); // Allow frames from the same origin (for H2 console)
 
         
@@ -71,12 +69,50 @@ public class SecurityConfig {
     }
 
 
-    @Bean
-    UserDetailsService userDetailsService()
-    {
+    // @Bean
+    // UserDetailsService userDetailsService()
+    // {
 
-       // return username -> org.springframework.security.core.userdetails.User
-       UserDetails user1 = User.withUsername("user1")
+    //    // return username -> org.springframework.security.core.userdetails.User
+    //    UserDetails user1 = User.withUsername("user1")
+    //         .password(passwordEncoder().encode("user1"))
+    //         .roles("USER")
+    //         .build();
+
+    //         UserDetails user2 = User.withUsername("admin1")
+    //         .password(passwordEncoder().encode("admin1"))
+    //         .roles("ADMIN")
+    //         .build();
+
+
+    //         JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager();
+
+    //         jdbcUserDetailsManager.setDataSource(dataSource);
+
+    //         jdbcUserDetailsManager.createUser(user1);
+    //         jdbcUserDetailsManager.createUser(user2);
+
+    //        return jdbcUserDetailsManager;
+
+    //        // return new InMemoryUserDetailsManager(user1,user2);
+    //        //https://github.com/spring-projects/spring-security/blob/main/core/src/main/resources/org/springframework/security/core/userdetails/jdbc/users.ddl           //https://github.com/jwtk/jjwt/blob/master/README.adoc#maven
+
+    // }
+
+
+    @Bean
+    UserDetailsService userDetailsService(DataSource dataSource)
+    {
+          return new JdbcUserDetailsManager(dataSource);
+
+    }
+
+    @Bean
+    CommandLineRunner initData(UserDetailsService userDetailsService)
+    {
+        return args -> {
+            JdbcUserDetailsManager jdbcUserDetailsManager = (JdbcUserDetailsManager) userDetailsService;
+            UserDetails user1 = User.withUsername("user1")
             .password(passwordEncoder().encode("user1"))
             .roles("USER")
             .build();
@@ -86,21 +122,14 @@ public class SecurityConfig {
             .roles("ADMIN")
             .build();
 
-
-            JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager();
-
-            jdbcUserDetailsManager.setDataSource(dataSource);
-
-            jdbcUserDetailsManager.createUser(user1);
-            jdbcUserDetailsManager.createUser(user2);
-
-           return jdbcUserDetailsManager;
-
-           // return new InMemoryUserDetailsManager(user1,user2);
-           //https://github.com/spring-projects/spring-security/blob/main/core/src/main/resources/org/springframework/security/core/userdetails/jdbc/users.ddl
-           //https://github.com/jwtk/jjwt/blob/master/README.adoc#maven
-
+                jdbcUserDetailsManager.createUser(user1);
+                jdbcUserDetailsManager.createUser(user2); 
+        };
     }
+    
+
+
+
 
     @Bean
     PasswordEncoder passwordEncoder() {
